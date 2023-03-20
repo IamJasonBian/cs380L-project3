@@ -132,8 +132,51 @@ static int (*syscalls[])(void) = {
 [SYS_munprotect] sys_munprotect,
 };
 
-void
-syscall(void)
+int sys_mprotect(void)
+{
+  char *addr;
+  int len;
+  struct proc *proc = myproc();
+  if(argptr(0, &addr, sizeof(addr)) < 0)
+    return -1;
+  if(argint(1, &len) < 0)
+    return -1;
+  if((uint)addr >= proc->sz || (uint)addr+len > proc->sz)
+    return -1;
+  if(len <= 0)
+    return -1;
+  if((uint)addr % PGSIZE != 0)
+    return -1;
+  if(len % PGSIZE != 0)
+    return -1;
+
+  //mprotect(addr, len);
+  return 0;
+}
+
+int sys_munprotect(void)
+{
+  char *addr;
+  int len;
+  struct proc *proc = myproc();
+  if(argptr(0, &addr, sizeof(addr)) < 0)
+    return -1;
+  if(argint(1, &len) < 0)
+    return -1;
+  if((uint)addr >= proc->sz || (uint)addr+len > proc->sz)
+    return -1;
+  if(len <= 0)
+    return -1;
+  if((uint)addr % PGSIZE != 0)
+    return -1;
+  if(len % PGSIZE != 0)
+    return -1;
+
+  //munprotect(addr, len);
+  return 0;
+}
+
+void syscall(void)
 {
   int num;
   struct proc *curproc = myproc();
