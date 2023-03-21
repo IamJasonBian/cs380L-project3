@@ -1,8 +1,10 @@
 #include "types.h"
+#include "user.h"
 #include "stat.h"
 #include "fcntl.h"
-#include "user.h"
 #include "x86.h"
+#include "mmu.h"
+#include "proc.h"
 
 char*
 strcpy(char *s, const char *t)
@@ -103,4 +105,32 @@ memmove(void *vdst, const void *vsrc, int n)
   while(n-- > 0)
     *dst++ = *src++;
   return vdst;
+}
+
+int thread_create(void (*start_routine)(void *, void* ), void *arg1, void *arg2) {
+  // malloc to create stack sized 1 page
+  void* stack;
+  stack = malloc(PGSIZE);
+
+  return clone(start_routine, arg1, arg2, stack);
+
+}
+
+int thread_join() {
+  void* stack;
+  int pid = join(&stack);
+  free(stack);
+  return pid;
+}
+
+void lock_init(lock_t *lock) {
+  lock->locked = 0;
+}
+
+void lock_acquire(lock_t *lock) {
+  while(xchg(&lock->locked, 1) != 0);
+}
+
+void lock_release(lock_t *lock) {
+  xchg(&lock->locked, 0);
 }
